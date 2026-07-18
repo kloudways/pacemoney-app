@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
@@ -7,9 +9,14 @@ from prometheus_client import Counter, generate_latest, CONTENT_TYPE_LATEST
 from .database import engine, Base, get_db
 from . import models
 
-Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Pace Money", version="1.0.0")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    Base.metadata.create_all(bind=engine)
+    yield
+
+
+app = FastAPI(title="Pace Money", version="1.0.0", lifespan=lifespan)
 
 REQUEST_COUNT = Counter(
     "pacemoney_requests_total",
