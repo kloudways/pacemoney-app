@@ -93,15 +93,18 @@ pipeline {
 
         stage('Helm Deploy') {
             steps {
-                sh """
-                    kops export kubecfg ${CLUSTER_NAME} \
-                      --state ${KOPS_STATE_STORE} --admin
-                    helm upgrade --install pacemoney ./deploy/helm/pacemoney \
-                      --namespace pacemoney --create-namespace \
-                      --set image.repository=${ECR_REGISTRY}/${ECR_REPO} \
-                      --set image.tag=${env.IMAGE_TAG} \
-                      --wait --timeout 5m
-                """
+                withCredentials([string(credentialsId: 'db-url', variable: 'DB_URL')]) {
+                    sh """
+                        kops export kubecfg ${CLUSTER_NAME} \
+                          --state ${KOPS_STATE_STORE} --admin
+                        helm upgrade --install pacemoney ./deploy/helm/pacemoney \
+                          --namespace pacemoney --create-namespace \
+                          --set image.repository=${ECR_REGISTRY}/${ECR_REPO} \
+                          --set image.tag=${env.IMAGE_TAG} \
+                          --set database.url=\${DB_URL} \
+                          --wait --timeout 5m
+                    """
+                }
             }
         }
 
