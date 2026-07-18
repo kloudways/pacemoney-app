@@ -1,0 +1,16 @@
+replicaCount: 2
+
+image:
+  pullPolicy: Always
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 512Mi
+
+# Set at deploy time — never commit the actual value:
+# database:
+#   url: "postgresql+psycopg2://user:pass@<rds-endpoint>:5432/pacemoney"

@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "pacemoney.fullname" . }}
+  labels:
+    {{- include "pacemoney.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "pacemoney.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "pacemoney.labels" . | nindent 8 }}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+      containers:
+        - name: pacemoney
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.app.port }}
+          env:
+            {{- if .Values.database.url }}
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pacemoney.fullname" . }}-db
+                  key: DATABASE_URL
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.app.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.app.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

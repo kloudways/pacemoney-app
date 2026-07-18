@@ -1,0 +1,26 @@
+replicaCount: 2
+
+image:
+  repository: 684779207098.dkr.ecr.eu-west-2.amazonaws.com/pacemoney
+  tag: latest
+  pullPolicy: IfNotPresent
+
+app:
+  port: 8000
+
+database:
+  url: ""
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+service:
+  type: LoadBalancer
+  port: 80
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
