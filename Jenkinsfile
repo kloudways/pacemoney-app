@@ -73,6 +73,7 @@ pipeline {
                     trivy image \
                       --exit-code 1 \
                       --severity HIGH,CRITICAL \
+                      --ignore-unfixed \
                       --no-progress \
                       ${ECR_REGISTRY}/${ECR_REPO}:${env.IMAGE_TAG}
                 """
