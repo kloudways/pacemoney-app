@@ -79,9 +79,11 @@ pytest tests/ -v
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/health` | Returns `{"status": "ok", "app": "pacemoney"}` |
+| GET | `/health` | Returns `{"status": "ok", "app": "pacemoney", "version": "2.0.0"}` |
 | GET | `/metrics` | Prometheus metrics (via prometheus-fastapi-instrumentator) |
 | GET | `/transactions` | List all transactions |
+| GET | `/transactions/summary` | Total spend and per-category breakdown |
+| GET | `/transactions/{id}` | Fetch a single transaction by ID (404 if not found) |
 | POST | `/transactions` | Create a transaction |
 | DELETE | `/transactions/{id}` | Delete a transaction |
 
