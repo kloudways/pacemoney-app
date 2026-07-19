@@ -10,7 +10,3 @@ resources:
   limits:
     cpu: 1000m
     memory: 512Mi
-
-# Set at deploy time — never commit the actual value:
-# database:
-#   url: "postgresql+psycopg2://user:pass@<rds-endpoint>:5432/pacemoney"
