@@ -13,7 +13,7 @@ def test_health_returns_ok():
 def test_metrics_endpoint_reachable():
     response = client.get("/metrics")
     assert response.status_code == 200
-    assert "pacemoney_requests_total" in response.text
+    assert "http_request_duration_seconds" in response.text
 
 
 def test_list_transactions_empty_on_fresh_db():

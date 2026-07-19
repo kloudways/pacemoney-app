@@ -7,6 +7,7 @@ httpx==0.28.1
 iniconfig==2.3.0
 pluggy==1.6.0
 prometheus_client==0.25.0
+prometheus-fastapi-instrumentator==8.0.2
 pydantic==2.13.4
 pytest==9.1.1
 python-dotenv==1.2.2
