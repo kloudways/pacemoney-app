@@ -8,8 +8,9 @@ image:
 app:
   port: 8000
 
-database:
-  url: ""
+externalSecret:
+  region: eu-west-2
+  secretName: pacemoney/db-url
 
 resources:
   requests:
