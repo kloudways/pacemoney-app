@@ -1,6 +1,8 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+from alembic import command as alembic_command
+from alembic.config import Config
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -9,15 +11,17 @@ from prometheus_fastapi_instrumentator import Instrumentator
 from sqlalchemy import func as sa_func
 from sqlalchemy.orm import Session
 
-from .database import engine, Base, get_db
-from . import models
+from .database import get_db
+from . import models  # noqa: F401 — registers models on Base metadata for Alembic
 
 STATIC_DIR = Path(__file__).parent / "static"
+ALEMBIC_INI = Path(__file__).parent.parent / "alembic.ini"
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    Base.metadata.create_all(bind=engine)
+    cfg = Config(str(ALEMBIC_INI))
+    alembic_command.upgrade(cfg, "head")
     yield
 
 

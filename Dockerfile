@@ -7,6 +7,8 @@ WORKDIR /app
 COPY requirements.txt requirements-prod.txt ./
 RUN pip install --no-cache-dir -r requirements-prod.txt
 
+COPY alembic.ini ./
+COPY alembic/ ./alembic/
 COPY app/ ./app/
 
 USER appuser
