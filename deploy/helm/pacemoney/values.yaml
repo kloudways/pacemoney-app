@@ -2,7 +2,7 @@ replicaCount: 2
 
 image:
   repository: 684779207098.dkr.ecr.eu-west-2.amazonaws.com/pacemoney
-  tag: 8cc89e5
+  tag: 4952336
   pullPolicy: IfNotPresent
 
 app:
