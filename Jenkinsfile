@@ -86,7 +86,6 @@ pipeline {
                         sh """
                             docker build \
                               -t ${ECR_REGISTRY}/${ECR_REPO}:${env.IMAGE_TAG} \
-                              -t ${ECR_REGISTRY}/${ECR_REPO}:latest \
                               .
                         """
                     }
@@ -111,7 +110,6 @@ pipeline {
                             aws ecr get-login-password --region ${AWS_REGION} | \
                               docker login --username AWS --password-stdin ${ECR_REGISTRY}
                             docker push ${ECR_REGISTRY}/${ECR_REPO}:${env.IMAGE_TAG}
-                            docker push ${ECR_REGISTRY}/${ECR_REPO}:latest
                         """
                     }
                 }
@@ -120,8 +118,8 @@ pipeline {
                     steps {
                         withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GH_USER', passwordVariable: 'GH_TOKEN')]) {
                             sh """
-                                git config user.email "jenkins@kloudways.com"
-                                git config user.name "Jenkins"
+                                git config --local user.email "jenkins@kloudways.com"
+                                git config --local user.name "Jenkins"
                                 sed -i "s|^  tag:.*|  tag: \"${env.IMAGE_TAG}\"|" deploy/helm/pacemoney/values.yaml
                                 git add deploy/helm/pacemoney/values.yaml
                                 git commit -m "chore: update image tag to ${env.IMAGE_TAG}"
@@ -149,7 +147,7 @@ pipeline {
     post {
         always {
             sh "docker rmi ${ECR_REGISTRY}/${ECR_REPO}:${env.IMAGE_TAG} || true"
-            sh "docker rmi ${ECR_REGISTRY}/${ECR_REPO}:latest || true"
+            archiveArtifacts artifacts: 'zap-report.html', allowEmptyArchive: true
             cleanWs()
         }
         success {

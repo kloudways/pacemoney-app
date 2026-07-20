@@ -3,10 +3,10 @@ from pathlib import Path
 
 from alembic import command as alembic_command
 from alembic.config import Config
-from fastapi import FastAPI, Depends, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from prometheus_fastapi_instrumentator import Instrumentator
 from sqlalchemy import func as sa_func
 from sqlalchemy.orm import Session
@@ -29,6 +29,18 @@ app = FastAPI(title="Pace Money", version="2.0.0", lifespan=lifespan)
 
 Instrumentator().instrument(app).expose(app)
 
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next) -> Response:
+    response = await call_next(request)
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Permissions-Policy"] = "geolocation=(), microphone=()"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; style-src 'self'; script-src 'self'"
+    )
+    return response
+
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
@@ -38,7 +50,7 @@ def index():
 
 
 class TransactionIn(BaseModel):
-    amount: float
+    amount: float = Field(gt=0)
     description: str
     category: str
 
