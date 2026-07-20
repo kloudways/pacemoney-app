@@ -50,21 +50,21 @@ docker run --rm -v ${WORKSPACE}:/repo ghcr.io/gitleaks/gitleaks:latest detect --
 
 #### 2. Unit Tests
 
-Creates a Python virtual environment, installs dependencies from `requirements.txt`, and runs the pytest test suite.
+Creates a Python virtual environment, installs dependencies from `requirements.txt`, and runs the pytest test suite with coverage.
 
 ```
 python3 -m venv .venv
 .venv/bin/pip install --quiet -r requirements.txt
-.venv/bin/pytest tests/ -v --tb=short
+.venv/bin/pytest tests/ -v --tb=short --cov=app --cov-report=xml:coverage.xml
 ```
 
-Tests use SQLite via the `DATABASE_URL` default. The `tests/conftest.py` fixture drops and recreates all tables before the session.
+Tests use SQLite via the `DATABASE_URL` default. The `tests/conftest.py` fixture drops and recreates all tables before the session using `create_all`/`drop_all` directly — Alembic is not involved in the test path. `coverage.xml` is written to the workspace root and consumed by the SonarQube stage.
 
 **Fails on:** any pytest test failure.
 
 #### 3. SonarQube
 
-Runs `sonar-scanner` against SonarCloud using the `sonar-token` credential. Configuration is read from `sonar-project.properties`.
+Runs `sonar-scanner` against SonarCloud using the `sonar-token` credential. Configuration is read from `sonar-project.properties`. The scanner ingests `coverage.xml` produced by the Unit Tests stage and reports Python test coverage on the SonarCloud dashboard.
 
 **Fails on:** non-zero exit from sonar-scanner.
 
@@ -94,7 +94,7 @@ Authenticates to ECR via the Jenkins IAM instance profile and pushes both the SH
 
 #### 8. Update Image Tag
 
-Updates `deploy/helm/pacemoney/values.yaml` with the new `IMAGE_TAG`, commits as `jenkins@kloudways.com`, and pushes to `main` using the `github-token` credential. ArgoCD detects this change and deploys the new image.
+Updates `deploy/helm/pacemoney/values.yaml` with the new `IMAGE_TAG` (written as a quoted YAML string to prevent YAML integer parsing of all-digit SHAs), commits as `jenkins@kloudways.com`, and pushes to `main` using the `github-token` credential. ArgoCD detects this change and deploys the new image.
 
 **Fails on:** git commit or push error (e.g., invalid `github-token` credential).
 
