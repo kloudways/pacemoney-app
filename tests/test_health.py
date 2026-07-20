@@ -22,6 +22,14 @@ def test_list_transactions_empty_on_fresh_db():
     assert response.json() == []
 
 
+def test_summary_empty_db():
+    response = client.get("/transactions/summary")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["total"] == 0
+    assert data["by_category"] == {}
+
+
 def test_create_and_list_transaction():
     payload = {"amount": 49.99, "description": "Grocery run", "category": "food"}
     create = client.post("/transactions", json=payload)
@@ -30,6 +38,9 @@ def test_create_and_list_transaction():
     assert data["amount"] == 49.99
     assert data["category"] == "food"
     assert "id" in data
+
+    listed = client.get("/transactions").json()
+    assert len(listed) == 1
 
 
 def test_get_transaction_by_id():
@@ -45,12 +56,36 @@ def test_get_transaction_not_found():
     assert response.status_code == 404
 
 
-def test_summary_response_structure():
-    response = client.get("/transactions/summary")
-    assert response.status_code == 200
-    data = response.json()
-    assert "total" in data
-    assert "by_category" in data
+def test_delete_transaction():
+    created = client.post("/transactions", json={"amount": 5.0, "description": "Coffee", "category": "food"}).json()
+    delete = client.delete(f"/transactions/{created['id']}")
+    assert delete.status_code == 204
+    assert client.get(f"/transactions/{created['id']}").status_code == 404
+
+
+def test_delete_transaction_not_found():
+    response = client.delete("/transactions/999999")
+    assert response.status_code == 404
+
+
+def test_create_transaction_missing_fields():
+    response = client.post("/transactions", json={"amount": 10.0})
+    assert response.status_code == 422
+
+
+def test_create_transaction_negative_amount():
+    response = client.post("/transactions", json={"amount": -5.0, "description": "Bad", "category": "food"})
+    assert response.status_code == 422
+
+
+def test_create_transaction_zero_amount():
+    response = client.post("/transactions", json={"amount": 0.0, "description": "Zero", "category": "food"})
+    assert response.status_code == 422
+
+
+def test_get_transaction_invalid_id_type():
+    response = client.get("/transactions/notanumber")
+    assert response.status_code == 422
 
 
 def test_summary_reflects_created_transactions():
@@ -64,3 +99,10 @@ def test_summary_reflects_created_transactions():
 
     for r in [r1, r2, r3]:
         client.delete(f"/transactions/{r.json()['id']}")
+
+
+def test_security_headers_present():
+    response = client.get("/health")
+    assert response.headers.get("x-frame-options") == "DENY"
+    assert response.headers.get("x-content-type-options") == "nosniff"
+    assert "content-security-policy" in response.headers

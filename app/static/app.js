@@ -24,6 +24,12 @@ const api = {
   },
 };
 
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = String(str);
+  return div.innerHTML;
+}
+
 function fmt(amount) {
   return '£' + Number(amount).toFixed(2);
 }
@@ -55,9 +61,9 @@ function renderTransactions(txs) {
   }
   const rows = [...txs].reverse().map(tx => `
     <tr>
-      <td>${tx.description}</td>
-      <td><span class="tx-category">${tx.category}</span></td>
-      <td class="tx-amount">${fmt(tx.amount)}</td>
+      <td>${escapeHtml(tx.description)}</td>
+      <td><span class="tx-category">${escapeHtml(tx.category)}</span></td>
+      <td class="tx-amount">${escapeHtml(fmt(tx.amount))}</td>
       <td>
         <button class="btn-delete" data-id="${tx.id}" title="Delete">&#x2715;</button>
       </td>
