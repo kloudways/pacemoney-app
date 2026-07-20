@@ -122,7 +122,7 @@ pipeline {
                             sh """
                                 git config user.email "jenkins@kloudways.com"
                                 git config user.name "Jenkins"
-                                sed -i "s|^  tag:.*|  tag: ${env.IMAGE_TAG}|" deploy/helm/pacemoney/values.yaml
+                                sed -i "s|^  tag:.*|  tag: \"${env.IMAGE_TAG}\"|" deploy/helm/pacemoney/values.yaml
                                 git add deploy/helm/pacemoney/values.yaml
                                 git commit -m "chore: update image tag to ${env.IMAGE_TAG}"
                                 git remote set-url origin https://\${GH_USER}:\${GH_TOKEN}@github.com/kloudways/pacemoney-app.git
