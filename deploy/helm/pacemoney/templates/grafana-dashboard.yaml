@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "pacemoney.fullname" . }}-dashboard
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "pacemoney.labels" . | nindent 4 }}
+    grafana_dashboard: "1"
+data:
+  pacemoney-dashboard.json: |-
+    {
+      "uid": "pacemoney",
+      "title": "Pace Money",
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "refresh": "30s",
+      "time": { "from": "now-6h", "to": "now" },
+      "panels": [
+        {
+          "id": 1,
+          "type": "timeseries",
+          "title": "Request Rate (req/s)",
+          "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": { "unit": "reqps", "color": { "mode": "palette-classic" } }
+          },
+          "targets": [
+            {
+              "expr": "sum(rate(http_request_duration_seconds_count{job=\"pacemoney-pacemoney\"}[5m])) by (handler)",
+              "legendFormat": "{{ "{{handler}}" }}"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "type": "timeseries",
+          "title": "P95 Latency (s)",
+          "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": { "unit": "s", "color": { "mode": "palette-classic" } }
+          },
+          "targets": [
+            {
+              "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"pacemoney-pacemoney\"}[5m])) by (le, handler))",
+              "legendFormat": "{{ "{{handler}}" }}"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "type": "timeseries",
+          "title": "Error Rate (4xx/5xx req/s)",
+          "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": { "unit": "reqps", "color": { "fixedColor": "red", "mode": "fixed" } }
+          },
+          "targets": [
+            {
+              "expr": "sum(rate(http_request_duration_seconds_count{job=\"pacemoney-pacemoney\",status_code=~\"4..|5..\"}[5m]))",
+              "legendFormat": "errors"
+            }
+          ]
+        }
+      ]
+    }
