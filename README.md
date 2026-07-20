@@ -1,15 +1,22 @@
 # pacemoney-app
 
-Application code, container image, Helm chart, CI pipeline, and GitOps delivery configuration for the Pace Money portfolio project. The application is a FastAPI expense tracker backed by PostgreSQL in production and SQLite in local development and tests.
+Application code, container image, Helm chart, CI pipeline, and GitOps delivery configuration for the Pace Money portfolio project. The application is a FastAPI expense tracker with a responsive web frontend, backed by PostgreSQL in production and SQLite in local development and tests.
 
 ## Repository structure
 
 ```
 pacemoney-app/
 ├── app/
-│   ├── main.py             # FastAPI application, routes, lifespan
+│   ├── main.py             # FastAPI application, routes, lifespan (runs Alembic on startup)
 │   ├── database.py         # SQLAlchemy engine and session factory
-│   └── models.py           # ORM models
+│   ├── models.py           # ORM models
+│   └── static/             # Web frontend (index.html, style.css, app.js)
+├── alembic/
+│   ├── env.py              # Alembic env: reads DATABASE_URL, targets Base.metadata
+│   └── versions/
+│       ├── 0001_initial_schema.py   # Creates transactions table
+│       └── 0002_add_created_at.py   # Adds created_at column
+├── alembic.ini             # Alembic configuration
 ├── tests/
 │   ├── conftest.py         # Session-scoped fixture: drops and recreates DB tables
 │   └── test_health.py      # Tests for /health, /metrics, /transactions
@@ -24,7 +31,8 @@ pacemoney-app/
 │   │           ├── service.yaml
 │   │           ├── servicemonitor.yaml   # Prometheus ServiceMonitor
 │   │           ├── secretstore.yaml      # ESO SecretStore (AWS Secrets Manager)
-│   │           └── externalsecret.yaml   # ESO ExternalSecret → Kubernetes Secret
+│   │           ├── externalsecret.yaml   # ESO ExternalSecret → Kubernetes Secret
+│   │           └── grafana-dashboard.yaml  # Grafana dashboard ConfigMap (sidecar discovery)
 │   └── argocd/
 │       └── application.yaml  # ArgoCD Application manifest
 ├── docs/
@@ -49,6 +57,8 @@ pacemoney-app/
 
 The database secret is never passed through Jenkins. The External Secrets Operator reads it from AWS Secrets Manager and creates a Kubernetes Secret in the `pacemoney` namespace.
 
+On pod startup, the lifespan event runs `alembic upgrade head` to apply any pending database migrations before the application begins serving traffic.
+
 ## Running locally
 
 ```bash
@@ -58,7 +68,7 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
-The application starts on `http://localhost:8000`. Without `DATABASE_URL` set, it uses SQLite (`./pacemoney.db`).
+The application starts on `http://localhost:8000`. The web frontend is served at `/`. Without `DATABASE_URL` set, it uses SQLite (`./pacemoney.db`). Alembic will run migrations against SQLite on startup.
 
 ## Running tests
 
@@ -79,6 +89,7 @@ pytest tests/ -v
 
 | Method | Path | Description |
 |--------|------|-------------|
+| GET | `/` | Web frontend (responsive HTML/CSS/JS expense tracker UI) |
 | GET | `/health` | Returns `{"status": "ok", "app": "pacemoney", "version": "2.0.0"}` |
 | GET | `/metrics` | Prometheus metrics (via prometheus-fastapi-instrumentator) |
 | GET | `/transactions` | List all transactions |
