@@ -1,6 +1,9 @@
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from prometheus_fastapi_instrumentator import Instrumentator
 from sqlalchemy import func as sa_func
@@ -8,6 +11,8 @@ from sqlalchemy.orm import Session
 
 from .database import engine, Base, get_db
 from . import models
+
+STATIC_DIR = Path(__file__).parent / "static"
 
 
 @asynccontextmanager
@@ -19,6 +24,13 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Pace Money", version="2.0.0", lifespan=lifespan)
 
 Instrumentator().instrument(app).expose(app)
+
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+
+@app.get("/", response_class=FileResponse, include_in_schema=False)
+def index():
+    return STATIC_DIR / "index.html"
 
 
 class TransactionIn(BaseModel):
