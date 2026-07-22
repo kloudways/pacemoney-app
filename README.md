@@ -2,6 +2,10 @@
 
 Application code, container image, Helm chart, CI pipeline, and GitOps delivery configuration for the Pace Money portfolio project. The application is a FastAPI expense tracker with a responsive web frontend, backed by PostgreSQL in production and SQLite in local development and tests.
 
+## Demo
+
+![Demo](docs/demo.gif)
+
 ## Repository structure
 
 ```
@@ -109,7 +113,7 @@ The chart is in `deploy/helm/pacemoney/`. The database secret is managed by ESO 
 | `replicaCount` | `2` | Number of pod replicas |
 | `externalSecret.region` | `eu-west-2` | AWS region for Secrets Manager |
 | `externalSecret.secretName` | `pacemoney/db-url` | Secrets Manager key |
-| `service.type` | `LoadBalancer` | Kubernetes Service type |
+| `service.type` | `NodePort` | Kubernetes Service type |
 | `service.port` | `80` | Service port |
 | `app.port` | `8000` | Container port |
 
