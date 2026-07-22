@@ -21,7 +21,6 @@ resources:
     memory: 256Mi
 
 service:
-  type: LoadBalancer
+  type: NodePort
   port: 80
-  annotations:
-    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+  nodePort: 30080
