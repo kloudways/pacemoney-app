@@ -1,6 +1,6 @@
 # pacemoney-app
 
-Application code, container image, Helm chart, CI pipeline, and GitOps delivery configuration for the Pace Money portfolio project. The application is a FastAPI expense tracker with a responsive web frontend, backed by PostgreSQL in production and SQLite in local development and tests.
+Application code, container image, Helm chart, CI pipeline, and GitOps delivery configuration for the Pace Money portfolio project. The application is a FastAPI expense tracker with a responsive web frontend, backed by PostgreSQL in production and SQLite in local development and tests. 
 
 ## Demo
 
